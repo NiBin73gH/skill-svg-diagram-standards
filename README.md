@@ -32,9 +32,11 @@ framework-diagram/
   HTML; paired HTML is generated only when requested.
 - **Accessible standalone SVG**: every diagram has `viewBox`, `title`, `desc`,
   `aria-labelledby`, and page-unique IDs.
-- **Three-plane edge semantics** (legend required when two or more semantics appear):
-  gray solid = control, blue thick = data, orange dashed = out-of-band/feedback,
-  gray dashed = association.
+- **Fixed edge semantics**: gray solid = control, blue thick = data, orange dashed
+  = out-of-band/feedback, gray dashed = association.
+- **Two-level color legend**: every SVG lists the node colors and edge styles it
+  actually uses; every generated HTML ends with the complete node-color meaning
+  guide. Colors represent responsibility/layer, never order, status, or data format.
 - **Scoped hard layout numbers** for standard swimlane charts: band title baseline at
   `band_y + 23`, node top at `band_y + 48` (≥25px clearance below the title),
   inter-band gaps 20px (44px where labeled cross-band edges pass through),
