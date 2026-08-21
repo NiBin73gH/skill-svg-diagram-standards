@@ -1,6 +1,6 @@
 ---
 name: framework-diagram
-description: 生成或修改 HTML 文档中内嵌的离线 SVG 框架图/架构图/泳道图/流程图的标准。当用户要求画架构图、框架图、泳道图、分层图、数据流图、控制流图、管线图，把 ASCII/mermaid 流程图升级成 SVG，生成横向或纵向流程图，生成带图的 HTML 文档，提到 gen_html.py / FLOWCHART 标记，或抱怨图"不好看/间距过小/标签重叠"需要调整布局时使用。凡是"生成/转换/重建 HTML"的任务，检查内容中发现 ASCII 框线图、mermaid flowchart 或未标记的图块时也应触发本技能。覆盖泳道布局尺寸规范（带标题与节点 ≥25px 间距等硬性数值）、横向/纵向版式选型、三类连线颜色语义、生成器工作流、离线自检与视觉验证流程。
+description: 生成或修改技术文档中的离线 SVG 框架图、架构图、泳道图、流程图、数据流图、控制流图或管线图。用于把 ASCII/Mermaid 图升级成 SVG、维护 FLOWCHART 标记或 gen_html.py、生成明确要求的带图离线 HTML，以及修复图中间距过小、标签重叠、斜线、穿框或布局失衡。也用于审查已有 HTML/SVG 是否自包含、可访问且可复现。覆盖输出门禁、泳道硬尺寸、横纵版式、连线语义、生成器工作流、离线自检和视觉验证。
 ---
 
 # 框架图生成标准（HTML 内嵌离线 SVG）
@@ -9,43 +9,52 @@ description: 生成或修改 HTML 文档中内嵌的离线 SVG 框架图/架构�
 目标：文档里的框架图全部是**生成器产出的离线 SVG**——双击可开、零外部资源、
 布局匀称、间距有硬性数值约束。
 
-详细尺寸表、配色、连线规则见 [`references/layout-spec.md`](./references/layout-spec.md)；
-生成器 API 与范例见 [`references/generator-api.md`](./references/generator-api.md)。
-动手前先读这两个文件。
+详细尺寸、配色和连线规则见 [`references/layout-spec.md`](./references/layout-spec.md)；
+生成器 API 与范例见 [`references/generator-api.md`](./references/generator-api.md)；
+生成或审查 HTML 时还要读 [`references/delivery-contract.md`](./references/delivery-contract.md)。
+修改图前先完整读取前两份引用；涉及 HTML 时三份都读。
 
 ## 核心原则
 
-1. **Markdown 是唯一手工源，HTML 由生成器重建，绝不手改 HTML。**
-   ASCII 图保留在 md 中，代码块前加 `<!-- FLOWCHART: name -->` 标记；生成器把它
-   替换为 SVG，原 ASCII 收进可折叠的 `<details>`。
-2. **优先复用项目内现成生成器**，新图 = 在生成器里新增一个 `FLOWS` 定义：
+1. **先执行输出门禁。** 只要求 Markdown 或画图时，不因目录里已有 HTML 而重建
+   HTML；只有用户明确要求生成、同步或审查 HTML 时，才处理 HTML。具体交付契约见
+   `delivery-contract.md`。
+2. **Markdown 是唯一手工内容源，HTML 由生成器重建，绝不手改 HTML。**
+   ASCII/Mermaid 图保留在 md 中，代码块前加 `<!-- FLOWCHART: name -->` 标记；
+   生成器把它替换为 SVG，并把原图源收进可折叠的 `<details>`。
+3. **优先复用项目内现成生成器，但先审计再复用。** 新图通常是在生成器里新增
+   一个 `FLOWS` 定义：
    - camera：`ZCode_docs/camera-porting/docs/tools/gen_html.py`
-     （含泳带 `band()` 支持与 `arch-overview` 五层泳道范例）
+     （含泳带 `band()` 支持与 `arch-overview` 五层泳道范例）；
    - audio：`sm6xx5_a16_um/docs/tools/gen_audio_html.py`
-   其他项目可按 references 中的规范新写，API 保持一致。
-3. **坐标可以手工指定，但端点必须用锚点函数取**（`d.top/bottom/left/right(id, dx)`）。
+     只能在“缺少 SVG 即失败、绝不回退 CDN/Mermaid.js”后使用。
+   这些路径是来源项目示例，并不保证存在，也不代表当前版本天然合规。
+4. **坐标可以手工指定，但端点必须用锚点函数取**（`d.top/bottom/left/right(id, dx)`）。
    节点高度按行数自动计算（`行数×18+16`），手算 y 必然偏差——这是实践中反复
    出现的"连线穿框"根因。
-4. **间距的含义要先问清/看清**：用户说"间距过小"可能是
+5. **每个 SVG 都是独立的可访问图。** 必须有 `viewBox`、`role="img"`、`<title>`、
+   `<desc>` 和引用二者的 `aria-labelledby`；所有 `id` 以图名为前缀，页面内不得
+   重复。禁止外部图片、字体、样式、脚本和运行时渲染回退。
+6. **间距的含义要先看清**：用户说"间距过小"可能是
    ①泳道带标题与带内节点贴边（标题基线与节点顶 ≥25px），或
    ②层与层之间的间隙（默认 20px，有跨层连线+标签的间隙 44px）。
-   两者都按 layout-spec 的数值核对，不要猜。
+   两者都按 layout-spec 的数值核对。
 
 ## 工作流
 
-1. 读 references 两份文件；确认目标生成器与要新增/修改的图名。
-2. 在生成器中定义图（band → box → edge → text → finish），遵守 layout-spec 数值。
-3. 运行生成器，**内置自检必须全 OK** 才算完成：无外部资源（http/https/
-   `<script`/`src=`/`@import`）、每个 SVG 可 XML 解析、节点文字不溢出
-   （CJK 感知宽度估算）、连线不穿节点内部、线段全部正交、坐标在画布内。
-   自检 WARN 不是警告，是失败——回到坐标修正，不改自检。
-4. **视觉验证（必做）**：把生成的 SVG 用 cairosvg 渲染成 PNG，再用视觉模型
+1. 确认用户要求的是 Markdown/SVG 还是同步 HTML；确认目标生成器和图名。
+2. 完整读取适用的 references；审计生成器是否存在 CDN、外部资源或运行时回退。
+3. 在生成器中定义图（band → box → edge → text → finish），遵守 layout-spec。
+4. 运行生成器；**任何 WARN 都视为失败**。必须检查：外部资源、SVG XML、
+   可访问性、重复 ID、文字溢出、连线穿框、非正交线段和画布越界。
+5. **视觉验证（必做）**：把生成的 SVG 用 cairosvg 渲染成 PNG，再用视觉模型
    按检查单复核：带标题-节点间距、节点-带底余量、层间间隙、连线是否压带标题
    文字、标签相互遮挡、图例可读。用户指出间距问题时，用截图对照确认属于
    哪一类间距后再改。
-5. 回归：改完重新运行生成器（会重建该目录全部 HTML），确认自检 OK。
+6. 回归：重新运行生成器和自检。若生成 HTML，再按 `delivery-contract.md` 检查
+   同名配对、图块数量、站内链接、离线资源、目标 checksum、移动端和打印布局。
 
-## 连线语义（三平面，图右上角必须有图例）
+## 连线语义
 
 | 线型 | 含义 | 样式 |
 |------|------|------|
@@ -53,6 +62,9 @@ description: 生成或修改 HTML 文档中内嵌的离线 SVG 框架图/架构�
 | 蓝色粗线+蓝箭头 | 数据面/像素·音频流 | `#0284c7` 2.2px |
 | 橙色虚线+橙箭头 | 带外通道（persist 属性等）/上行回读 | `#d97706` dasharray 6 4 |
 | 灰色虚线无箭头 | 关联/对应/绕行关系 | `#94a3b8` dasharray 5 4 |
+
+同一图中出现两种及以上连线语义，或单一颜色可能产生歧义时，必须在右上角放图例。
+只有一种明确连线语义的简单图可以省略图例。
 
 ## 流程图版式选型（横向 or 纵向）
 
@@ -75,3 +87,6 @@ description: 生成或修改 HTML 文档中内嵌的离线 SVG 框架图/架构�
   （如 "MIPI CSI-2 YUV422" 需要 ~120px 间隙）。
 - 标签放在间隙里贴到泳道边界线。标签基线距上边界线和自己的连线都 ≥3px。
 - 加宽间隙解决不了"标题与节点贴边"——那是带内间距，要加高泳道带并下移节点。
+- 把未配套 SVG 的 Mermaid 回退到 CDN。应直接失败并补齐离线 SVG。
+- 在同一 HTML 中重复使用 `arr`、`title` 等 ID。所有 ID 都要加图名前缀。
+- 只写 `aria-label` 而没有 `<title>/<desc>`。这不满足本 skill 的可访问性契约。

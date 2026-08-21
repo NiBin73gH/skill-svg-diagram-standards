@@ -1,13 +1,23 @@
 # 生成器 API 与范例
 
+## 目录
+
+1. 现成生成器位置
+2. 范例图索引
+3. Diagram API
+4. Markdown 侧标记
+5. 布局节奏参考
+6. 运行与验证
+
 ## 现成生成器位置
 
 | 项目 | 生成器 | 说明 |
 |------|--------|------|
-| camera（A16） | `ZCode_docs/camera-porting/docs/tools/gen_html.py` | **首选参考**：含泳带 band() 支持、data/up/link 三类连线、布局自检；下表 11 个 FLOWS 全部可作范例 |
-| audio（A16） | `sm6xx5_a16_um/docs/tools/gen_audio_html.py` | audio-overview"一分钟总览"多泳道样式（横向主链 + 泳道分组的对齐来源） |
+| camera（A16） | `ZCode_docs/camera-porting/docs/tools/gen_html.py` | 布局首选参考；复用前补查 title/desc、唯一 ID、图数与交付校验 |
+| audio（A16） | `sm6xx5_a16_um/docs/tools/gen_audio_html.py` | 只参考图源嵌入方式；必须先删除 Mermaid CDN 回退，并加入与 camera 等价的失败型自检 |
 
-新图一律在对应生成器中新增 FLOWS 定义；跨项目新写生成器时照抄该 API 与自检。
+这些是来源项目路径，不保证在其他机器存在。新图优先在项目生成器中新增 FLOWS
+定义；复用 API，不要照抄已知不合规的回退逻辑。
 
 ## 范例图索引（gen_html.py 中的 FLOWS）
 
@@ -24,7 +34,8 @@
 ## Diagram API
 
 ```python
-d = Diagram("图的 aria 标题")
+flow_id = "arch-overview"  # 同时作为所有 SVG id 的前缀
+d = Diagram("图的可访问标题")
 
 # 泳道带：x, y, w, h, 标题（标题基线自动在 y+23，左上角）
 d.band(16, 136, 1148, 114, "Android Camera Framework（AOSP 通用）")
@@ -52,18 +63,29 @@ d.text(1164, 32, "灰＝控制面 · 蓝＝数据面 · 橙虚＝persist 带外"
 d.finish(1180, 755)   # 画布尺寸
 ```
 
-注册：`FLOWS["arch-overview"] = _build_arch_overview()`。
+注册：`FLOWS[flow_id] = _build_arch_overview()`。SVG 渲染器必须用 `flow_id` 生成
+唯一 ID，例如 `arch-overview-title`、`arch-overview-desc`、
+`arch-overview-arr-data`，并输出：
+
+```html
+<svg viewBox="0 0 1180 755" role="img"
+     aria-labelledby="arch-overview-title arch-overview-desc">
+  <title id="arch-overview-title">图的可访问标题</title>
+  <desc id="arch-overview-desc">从应用层到硬件层的数据与控制路径。</desc>
+</svg>
+```
 
 ## Markdown 侧标记
 
-```markdown
+~~~~markdown
 <!-- FLOWCHART: arch-overview -->
 ```text
 （原 ASCII 图保留在此，生成器替换为 SVG 并把 ASCII 收进 <details>）
 ```
-```
+~~~~
 
-规则：标记名 = FLOWS 键名；标记必须紧跟代码块（中间只允许空行）。
+也可使用 `mermaid` 代码块。规则：标记名 = FLOWS 键名；标记必须紧跟代码块
+（中间只允许空行）。标记缺失、未知名称或缺少 SVG 时必须失败，禁止 CDN 回退。
 
 ## 布局节奏参考（_build_arch_overview 实测数值）
 
@@ -93,3 +115,6 @@ EOF
 python3 -c "import cairosvg; cairosvg.svg2png(url='/tmp/diagram.svg', write_to='/tmp/diagram.png', output_width=1500)"
 # 然后用视觉模型按 layout-spec §7 检查单逐项复核
 ```
+
+生成 HTML 后继续执行 `delivery-contract.md` 的最终检查。至少核对同名 MD/HTML、
+FLOWCHART 与 SVG 数量、站内链接、外部加载依赖、重复 ID，以及暂存/目标 checksum。

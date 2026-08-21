@@ -2,10 +2,11 @@
 
 > Architecture & flowchart diagrams as offline SVG for technical docs
 
-An agent skill that standardizes how architecture diagrams, swimlane overview
-charts, and flowcharts are generated inside HTML documentation — fully
-offline, self-contained SVG produced by a generator. HTML/SVG is never
-hand-edited; Markdown remains the only hand-written source.
+An agent skill that standardizes architecture diagrams, swimlane overviews,
+and flowcharts for Markdown and explicitly requested HTML deliverables. SVG is
+fully offline, self-contained, accessible, and generator-produced. Generated
+HTML/SVG is never hand-edited; Markdown remains the only hand-written content
+source.
 
 Distilled from real-world Android BSP porting documentation (camera & audio
 bring-up on a Qualcomm platform), where every layout rule was validated
@@ -18,7 +19,8 @@ framework-diagram/
 ├── SKILL.md                      # trigger conditions, principles, workflow, pitfalls
 └── references/
     ├── layout-spec.md            # hard layout numbers & style rules
-    └── generator-api.md          # Diagram API, example flows, run/verify commands
+    ├── generator-api.md          # Diagram API, example flows, run/verify commands
+    └── delivery-contract.md      # HTML gate, offline/accessibility/integrity contract
 ```
 
 ## Key rules the skill enforces
@@ -26,17 +28,23 @@ framework-diagram/
 - **Markdown-first**: ASCII art stays in the source; `<!-- FLOWCHART: name -->`
   markers let a generator swap in SVG (original ASCII kept in a collapsible
   `<details>` block).
-- **Three-plane edge semantics** (with a legend, always):
+- **Explicit HTML gate**: drawing or Markdown requests do not silently rebuild
+  HTML; paired HTML is generated only when requested.
+- **Accessible standalone SVG**: every diagram has `viewBox`, `title`, `desc`,
+  `aria-labelledby`, and page-unique IDs.
+- **Three-plane edge semantics** (legend required when two or more semantics appear):
   gray solid = control, blue thick = data, orange dashed = out-of-band/feedback,
   gray dashed = association.
-- **Hard layout numbers** for swimlane charts: band title baseline at
+- **Scoped hard layout numbers** for standard swimlane charts: band title baseline at
   `band_y + 23`, node top at `band_y + 48` (≥25px clearance below the title),
   inter-band gaps 20px (44px where labeled cross-band edges pass through),
-  node height auto-computed from line count.
+  node height auto-computed from line count. The 1180px canvas is not imposed
+  on every small or content-sized diagram.
 - **Orthogonal routing only**, with endpoints taken from anchor helpers
   (`top/bottom/left/right`) — never hand-computed coordinates.
-- **Built-in self-checks**: no external resources (fully offline), valid SVG,
-  no text overflow (CJK-aware width estimation), no edge-node crossings.
+- **Built-in self-checks**: no CDN or runtime fallback, valid accessible SVG,
+  unique and resolved IDs, exact diagram counts, no text overflow (CJK-aware
+  width estimation), no edge-node crossings.
 - **Mandatory visual verification**: render the SVG to PNG (cairosvg) and
   review with a vision model against a checklist before calling it done.
 
