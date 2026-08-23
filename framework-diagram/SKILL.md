@@ -1,6 +1,6 @@
 ---
 name: framework-diagram
-description: 生成或修改技术文档中的离线 SVG 框架图、架构图、泳道图、流程图、数据流图、控制流图或管线图。用于把 ASCII/Mermaid 图升级成 SVG、维护 FLOWCHART 标记或 gen_html.py、生成明确要求的带图离线 HTML，统一节点底色/图例/HTML 文末色块说明，以及修复图中间距过小、标签重叠、斜线、穿框或布局失衡。也用于审查已有 HTML/SVG 是否自包含、可访问且可复现。覆盖输出门禁、颜色语义、泳道硬尺寸、横纵版式、连线语义、生成器工作流、离线自检和视觉验证。
+description: 生成或修改技术文档中的离线 SVG 框架图、架构图、泳道图、流程图、数据流图、控制流图或管线图。用于把 ASCII/Mermaid 图升级成 SVG、维护 FLOWCHART 标记或 gen_html.py、生成明确要求的带图离线 HTML，统一节点底色/图例/HTML 文末色块说明，以及修复图中间距过小、标签重叠、斜线、穿框或布局失衡。也用于审查已有 HTML/SVG 是否自包含、可访问且可复现。覆盖输出门禁、颜色语义、泳道硬尺寸、横纵版式、连线语义、生成器工作流、离线自检和视觉验证。Also for English requests: offline self-contained SVG architecture / swimlane / flowchart / data-flow / pipeline diagrams for technical docs, upgrading ASCII or Mermaid blocks to accessible SVG, and fixing diagram layout (overlaps, diagonal lines, spacing).
 ---
 
 # 框架图生成标准（HTML 内嵌离线 SVG）
@@ -27,8 +27,10 @@ description: 生成或修改技术文档中的离线 SVG 框架图、架构图�
    - camera：`ZCode_docs/camera-porting/docs/tools/gen_html.py`
      （含泳带 `band()` 支持与 `arch-overview` 五层泳道范例）；
    - audio：`ZCode_docs/audio-porting/docs/tools/gen_audio_html.py`
-     只能在“缺少 SVG 即失败、绝不回退 CDN/Mermaid.js”后使用。
-   这些路径是来源项目示例，并不保证存在，也不代表当前版本天然合规。
+     （仅当审计确认其“缺 SVG 即失败、无 CDN/Mermaid.js 回退”后才可复用）。
+   这些路径是来源项目示例，并不保证存在，也不代表当前版本天然合规；
+   目标项目没有现成生成器时，从本 skill 自带的
+   `examples/diagram_lib.py`（最小可运行参考实现）起步搭建。
 4. **坐标可以手工指定，但端点必须用锚点函数取**（`d.top/bottom/left/right(id, dx)`）。
    节点高度按行数自动计算（`行数×18+16`），手算 y 必然偏差——这是实践中反复
    出现的"连线穿框"根因。

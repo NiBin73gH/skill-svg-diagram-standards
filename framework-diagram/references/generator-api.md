@@ -16,9 +16,12 @@
 |------|--------|------|
 | camera（A16） | `ZCode_docs/camera-porting/docs/tools/gen_html.py` | 首选参考：含泳带、自动图例、HTML 文末色块说明和失败型自检 |
 | audio（A16） | `ZCode_docs/audio-porting/docs/tools/gen_audio_html.py` | audio 离线 SVG/HTML 生成器；改图时同步接入本规范的配色语义与两级图例 |
+| 本 skill 自带 | `examples/diagram_lib.py` | 最小可运行参考实现（零依赖，`python3 examples/diagram_lib.py` 生成 demo 并自检），新项目的起步骨架 |
 
-这些是来源项目路径，不保证在其他机器存在。新图优先在项目生成器中新增 FLOWS
-定义；复用 API，不要照抄已知不合规的回退逻辑。
+前两行是来源项目路径，不保证在其他机器存在。新图优先在项目生成器中新增 FLOWS
+定义；复用 API，不要照抄已知不合规的回退逻辑。目标项目没有生成器时，从
+`examples/diagram_lib.py` 起步（Diagram/锚点/自动图例/单图自检均已实现，
+补上 FLOWCHART 标记替换与 HTML 模板即成为完整生成器）。
 
 ## 范例图索引（gen_html.py 中的 FLOWS）
 
@@ -89,8 +92,10 @@ NODE_LEGEND = (
     # 完整列表见 layout-spec §3
 )
 
-# 每张图：根据 d.nodes / d.edges 的实际 class 生成紧凑图例
-legend, legend_height, legend_desc = legend_svg(d, marker_ids)
+# 每张图：图例不是公开函数，而是 Diagram 内部在 finish() 时根据
+# self.nodes / self.edges 实际使用的 class 集合自动生成（超宽自动换行），
+# 并把正文整体下移——因此不可能出现"手写图例与实际漂移"。
+# 参考实现见 examples/diagram_lib.py 的 Diagram._legend_groups()。
 
 # 每篇 HTML：在 </article> 前插入完整配色说明
 TEMPLATE = """...{body}{color_guide}</article>..."""

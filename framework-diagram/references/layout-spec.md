@@ -134,8 +134,11 @@
 7. 缩窄页面后是否可横向滚动而不截断？打印预览是否保持图的可读比例？
 8. HTML 文末色块说明是否为桌面两列、窄屏单列，色块与文字是否对齐？
 
-渲染方法：`pip3 install --user --break-system-packages cairosvg`，然后
+渲染方法：安装 cairosvg 后执行
 `python3 -c "import cairosvg; cairosvg.svg2png(url='in.svg', write_to='out.png', output_width=1500)"`。
+安装命令按平台选择：Debian/Ubuntu（PEP 668 管控）用
+`pip3 install --user --break-system-packages cairosvg`；其他平台去掉
+`--break-system-packages`，或直接在 venv 里 `pip install cairosvg`。
 
 ## 8. 流程图版式规范（2026-08-21 第二轮确认）
 

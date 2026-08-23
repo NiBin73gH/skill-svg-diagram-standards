@@ -17,10 +17,12 @@ against rendered output and human review.
 ```
 framework-diagram/
 ├── SKILL.md                      # trigger conditions, principles, workflow, pitfalls
-└── references/
-    ├── layout-spec.md            # hard layout numbers & style rules
-    ├── generator-api.md          # Diagram API, example flows, run/verify commands
-    └── delivery-contract.md      # HTML gate, offline/accessibility/integrity contract
+├── references/
+│   ├── layout-spec.md            # hard layout numbers & style rules
+│   ├── generator-api.md          # Diagram API, example flows, run/verify commands
+│   └── delivery-contract.md      # HTML gate, offline/accessibility/integrity contract
+└── examples/
+    └── diagram_lib.py            # minimal runnable Diagram library, self-checks, demo
 ```
 
 ## Key rules the skill enforces
@@ -85,3 +87,11 @@ The example generator paths in `references/` point to the internal project
 this skill was distilled from (they won't exist on your machine). The
 specs, API description, self-check list, and verification workflow are fully
 portable — use them to write your own generator for your documentation set.
+
+As a starting point, the repo ships a minimal runnable reference
+implementation: `examples/diagram_lib.py` (zero dependencies). Run
+`python3 framework-diagram/examples/diagram_lib.py` to generate
+`demo.svg` + `demo.html` (offline, accessible SVG with an auto-derived
+legend, plus the page-end color guide) and exercise the built-in
+self-checks. Extend it with `FLOWCHART` marker replacement and an HTML
+template to turn it into a full generator for your docs.
